@@ -72,14 +72,52 @@ void runcmd(struct cmd *cmd)
   case '>':
   case '<':
     rcmd = (struct redircmd*)cmd;
-    fprintf(stderr, "redir not implemented\n");
+    //fprintf(stderr, "redir not implemented\n");
+    close(rcmd->fd);
+    open(rcmd->file,rcmd->flags,S_IRUSR|S_IRWXG);//write&read
+
     // Your code here ...
     runcmd(rcmd->cmd);
     break;
 
   case '|':
     pcmd = (struct pipecmd*)cmd;
-    fprintf(stderr, "pipe not implemented\n");
+    //fprintf(stderr, "pipe not implemented\n");
+    int pip=pipe(p);
+    if(pip==-1){
+      fprintf(stderr,"error");
+      exit(-1);
+    }
+    int* read_fd=&p[0];
+    int* write_fd=&p[1];
+    int pid_left=fork();
+    if(pid_left==0){
+      close(*read_fd);
+      int fd=dup2(*write_fd,1);
+      if(fd<0){
+        fprintf(stderr,"error");
+        exit(-1);
+      }
+      runcmd(pcmd->left);
+      close(*write_fd);
+    }
+
+    int pid_right=fork();
+    if(pid_right==0){
+      close(*write_fd);
+      int fd=dup2(*read_fd,0);
+      if(fd<0){
+        fprintf(stderr,"error");
+        exit(-1);
+      }
+      runcmd(pcmd->right);
+      close(*read_fd);
+    }
+    close(*read_fd);
+    close(*write_fd);
+    //block
+    wait(&pid_left);
+    wait(&pid_right);
     // Your code here ...
     break;
   }    
