@@ -65,6 +65,7 @@ void runcmd(struct cmd *cmd)
     // char* env;
     // env=getenv("PATH");
     // printf("%s\n",env);
+    //have PATH:/bin
     execvp(ecmd->argv[0],ecmd->argv);
     // Your code here ...
     break;
@@ -73,7 +74,7 @@ void runcmd(struct cmd *cmd)
   case '<':
     rcmd = (struct redircmd*)cmd;
     //fprintf(stderr, "redir not implemented\n");
-    close(rcmd->fd);
+    close(rcmd->fd); // fd =(type=='<') ? 0:1
     open(rcmd->file,rcmd->flags,S_IRUSR|S_IRWXG);//write&read
 
     // Your code here ...
